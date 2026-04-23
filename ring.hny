@@ -1,0 +1,49 @@
+from synch import Lock, acquire, release, Condition, wait, notify, notify_all
+
+def Ring(nboxers) returns ring:
+    ring = {
+        .lock: Lock(),
+        .pairing_cond: Condition(),
+        .ring_empty_cond: Condition(),
+        .round_cond: Condition(),
+        .nboxers: nboxers,
+        .current_round: 1,
+        .boxers_waiting_to_pair: 0,
+        .boxers_in_ring: 0,
+        .boxers_finished_round: 0
+    }
+
+def enter(ring, round):
+    acquire(?ring->lock)
+
+    while ring->current_round != round:
+        wait(?ring->round_cond, ?ring->lock)
+
+    while ring->boxers_in_ring > 0:
+        wait(?ring->ring_empty_cond, ?ring->lock)
+
+    ring->boxers_waiting_to_pair += 1
+    if ring->boxers_waiting_to_pair == 2:
+        ring->boxers_in_ring = 2
+        ring->boxers_waiting_to_pair = 0
+        notify(?ring->pairing_cond) 
+    else:
+        wait(?ring->pairing_cond, ?ring->lock)
+
+    release(?ring->lock)
+
+def exit(ring):
+    acquire(?ring->lock)
+
+    ring->boxers_in_ring -= 1
+    ring->boxers_finished_round += 1
+
+    if ring->boxers_in_ring == 0:
+        notify_all(?ring->ring_empty_cond)
+
+    if ring->boxers_finished_round == ring->nboxers:
+        ring->current_round += 1
+        ring->boxers_finished_round = 0
+        notify_all(?ring->round_cond)
+
+    release(?ring->lock)
