@@ -10,7 +10,8 @@ def Ring(nboxers) returns ring:
         .current_round: 1,
         .boxers_waiting_to_pair: 0,
         .boxers_in_ring: 0,
-        .boxers_finished_round: 0
+        .boxers_finished_round: 0,
+        .boxers_ready: 0
     }
 
 def enter(ring, round):
@@ -19,14 +20,17 @@ def enter(ring, round):
     while ring->current_round != round:
         wait(?ring->round_cond, ?ring->lock)
 
-    while ring->boxers_in_ring > 0:
+    while ring->boxers_in_ring > 0 or ring->boxers_ready >= 2:
         wait(?ring->ring_empty_cond, ?ring->lock)
 
+    ring->boxers_ready += 1
     ring->boxers_waiting_to_pair += 1
+
     if ring->boxers_waiting_to_pair == 2:
         ring->boxers_in_ring = 2
         ring->boxers_waiting_to_pair = 0
-        notify(?ring->pairing_cond) 
+        ring->boxers_ready = 0
+        notify(?ring->pairing_cond)
     else:
         wait(?ring->pairing_cond, ?ring->lock)
 
