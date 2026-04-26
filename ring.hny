@@ -31,12 +31,12 @@ def enter(ring, round):
     else:
         wait(?ring->pairing_cond, ?ring->lock)
 
-    print("entered")
+    print ("Boxer entered ring for round", round)
     release(?ring->lock)
 
 def exit(ring):
     acquire(?ring->lock)
-
+    print ("Boxer exiting ring, round", ring->current_round)
     ring->boxers_in_ring -= 1
     ring->boxers_finished_round += 1
 
@@ -46,6 +46,5 @@ def exit(ring):
             ring->boxers_finished_round = 0
             notify_all(?ring->round_cond)
         notify_all(?ring->ring_empty_cond)
-
-    print("exit")
+        
     release(?ring->lock)
