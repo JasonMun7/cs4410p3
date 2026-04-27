@@ -1,13 +1,9 @@
 import ring
 
-const NBOXERS = 2
+const NBOXERS = 8
 const NROUNDS = 1
 
 assert NBOXERS % 2 == 0
-
-invariant my_ring.boxers_in_ring <= 2
-
-invariant my_ring.boxers_waiting_to_pair < 2
 
 my_ring = ring.Ring(NBOXERS)
 
@@ -18,3 +14,10 @@ def boxer(boxer_id):
 
 for i in { 0 .. NBOXERS - 1 }:
     spawn boxer(i)
+
+# ==========================================
+# BULLETPROOFING: GLOBAL INVARIANTS
+# ==========================================
+invariant (my_ring.boxers_in_ring >= 0) and (my_ring.boxers_in_ring <= 2)
+invariant (my_ring.boxers_waiting_to_pair >= 0) and (my_ring.boxers_waiting_to_pair <= 1)
+invariant (my_ring.boxers_finished_round >= 0) and (my_ring.boxers_finished_round <= NBOXERS)
