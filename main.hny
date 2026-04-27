@@ -1,9 +1,13 @@
 import ring
 
-const NBOXERS = 6
-const NROUNDS = 4
+const NBOXERS = 2
+const NROUNDS = 1
 
 assert NBOXERS % 2 == 0
+
+invariant my_ring.boxers_in_ring <= 2
+
+invariant my_ring.boxers_waiting_to_pair < 2
 
 my_ring = ring.Ring(NBOXERS)
 

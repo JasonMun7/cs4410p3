@@ -16,6 +16,8 @@ def Ring(nboxers) returns ring:
 def enter(ring, round):
     acquire(?ring->lock)
 
+    assert ring->current_round == round
+
     while ring->current_round != round:
         wait(?ring->round_cond, ?ring->lock)
 
@@ -30,6 +32,8 @@ def enter(ring, round):
         notify_all(?ring->pairing_cond)              
     else:
         wait(?ring->pairing_cond, ?ring->lock)
+    
+    assert ring->boxers_in_ring == 2
 
     print ("Boxer entered ring for round", round)
     release(?ring->lock)
@@ -37,6 +41,8 @@ def enter(ring, round):
 def exit(ring):
     acquire(?ring->lock)
     print ("Boxer exiting ring, round", ring->current_round)
+
+    assert ring->boxers_in_ring > 0
     ring->boxers_in_ring -= 1
     ring->boxers_finished_round += 1
 
